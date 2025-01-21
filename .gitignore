@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+
+*.mp3
+*.pdf
+*.docx
+*.txt
+
+!requirements.txt
+
+.DS_Store
