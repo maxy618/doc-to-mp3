@@ -1,6 +1,17 @@
 
 ---
 
+<pre align="center">
+      .-.                                         .----.
+      : :              .-   .-                    `--  ;
+    .-' : .--.  .--.   `.`. `.`.   ,-.,-.,-..---.  .' ' 
+   ' .; :' .; :'  ..'   ,',' ,','  : ,. ,. :: .; ` _`,`.
+   `.__.'`.__.'`.__.'  :_,  :_,    :_;:_;:_;: ._.'`.__.'
+                                            : :         
+                                            :_;         
+</pre>
+
+
 # DOC to MP3 Converter 🎧
 
 `doc_to_mp3.py` is a Python script that converts text from `.txt`, `.pdf`, or `.docx` files into an MP3 audio file using Google Text-to-Speech (gTTS).
