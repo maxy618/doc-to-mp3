@@ -8,7 +8,7 @@
 
 """
 doc-to-mp3: A script to convert text from documents (txt, pdf, docx) into MP3 audio files.
-Author: [maxy618]
+Author: maxy618
 Version: 1.0
 """
 
