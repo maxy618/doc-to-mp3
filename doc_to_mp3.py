@@ -1,7 +1,10 @@
-#     .            ,                  _, 
-#    _| _  _. ___ -+- _  ___ ._ _ ._ '_) 
-#   (_](_)(_.      | (_)     [ | )[_)._) 
-#                                 |      
+#      .-.                                         .----.
+#      : :              .-   .-                    `--  ;
+#    .-' : .--.  .--.   `.`. `.`.   ,-.,-.,-..---.  .' ' 
+#   ' .; :' .; :'  ..'   ,',' ,','  : ,. ,. :: .; ` _`,`.
+#   `.__.'`.__.'`.__.'  :_,  :_,    :_;:_;:_;: ._.'`.__.'
+#                                            : :         
+#                                            :_;                                     |      
 
 """
 doc-to-mp3: A script to convert text from documents (txt, pdf, docx) into MP3 audio files.
@@ -126,8 +129,8 @@ def convert_to_mp3(text: str, language: str, output_file: str = 'result.mp3'):
 
 def main(file_path: str, language: str) -> None:
     prepare_console(
-        logo_text='doc-to-mp3',
-        logo_font='slant',
+        logo_text='doc >> mp3',
+        logo_font='fuzzy',
         logo_color='light_cyan'
         )
 
