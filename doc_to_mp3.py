@@ -9,11 +9,12 @@
 """
 doc-to-mp3: A script to convert text from documents (txt, pdf, docx) into MP3 audio files.
 Author: maxy618
-Version: 1.0
+Version: 2.0
 """
 
 import argparse
 import os
+import threading
 from pathlib import Path
 
 import fitz  # PyMuPDF
@@ -27,7 +28,27 @@ from termcolor import colored
 SUPPORTED_TYPES = ('txt', 'pdf', 'docx')
 
 success = colored('[+] SUCCESS', color='green', attrs=['bold'])
+warning = colored('[!] WARNING', color='yellow', attrs=['bold'])
 error = colored('[-] ERROR', color='red', attrs=['bold'])
+
+
+def run_in_thread(func):
+    """
+    Decorator to run a function in a separate thread.
+
+    Args:
+        func (callable): The function to be executed in a thread.
+
+    Returns:
+        callable: A wrapped function that runs in a thread.
+    """
+    def wrapper(*args, **kwargs):
+        try:
+            thread = threading.Thread(target=func, args=args, kwargs=kwargs)
+            thread.start()
+        except Exception as e:
+            print(f'{error} Exception in thread: {e}')
+    return wrapper
 
 
 def prepare_console(logo_text: str, logo_font: str, logo_color: str) -> None:
@@ -42,16 +63,10 @@ def prepare_console(logo_text: str, logo_font: str, logo_color: str) -> None:
     os.system('cls' if os.name == 'nt' else 'clear')    
 
     logo = figlet_format(text=logo_text, font=logo_font)
-    print(
-        colored(
-            logo,
-            color=logo_color,
-            attrs=['bold']
-        )
-    )
+    print(colored(logo, logo_color,attrs=['bold']))
 
 
-def validate_file(file_path: str, supported_types: list[str]) -> str:
+def validate_file(file_path: str, supported_types: tuple[str]) -> str:
     """
     Validate the file path and ensure the file type is supported.
 
@@ -87,7 +102,7 @@ def extract_text(file_path: str, document_type: str) -> str:
         str: The extracted text.
     """
     text = ''
-    print(f'{success} Fetching text from: {document_type}')
+    print(f'{success} Fetching text from: {file_path}')
     try:
         if document_type == 'txt':
             with open(file_path, 'r', encoding='utf-8') as txt_file:
@@ -100,11 +115,11 @@ def extract_text(file_path: str, document_type: str) -> str:
             doc = Document(file_path)
             text = ' '.join([p.text for p in doc.paragraphs])
     except Exception as e:
-        print(f'{error}: Failed to extract text: {e}')
+        print(f'{error}: Failed to extract text from {file_path}: {e}')
     return text
 
 
-def convert_to_mp3(text: str, language: str, output_file: str = 'result.mp3'):
+def convert_to_mp3(text: str, language: str, output_name: str) -> None:
     """
     Convert the given text to an MP3 audio file using the specified language.
 
@@ -117,43 +132,63 @@ def convert_to_mp3(text: str, language: str, output_file: str = 'result.mp3'):
     if language not in supported_languages:
         print(f'{error} This language is not supported')
         return
+    
+    output_file = output_name + '.mp3'
+
     if Path(output_file).exists():
+        print(f'{warning} File "{output_file}" already exists and will be overwritten')   
         os.remove(output_file)
-    if not output_file.endswith('.mp3'):
-        output_file += '.mp3'
 
-    audio = gTTS(text=text, lang=language)
-    audio.save(output_file)
-    print(f'{success} Audio "{output_file}" has been saved')
+    try:
+        audio = gTTS(text=text, lang=language)
+        audio.save(output_file)
+        print(f'{success} Audio "{output_file}" has been saved')
+    except Exception as e:
+        print(f'{error} Failed to convert to {output_file}: {e}')
 
 
-def main(file_path: str, language: str) -> None:
+@run_in_thread
+def process_file(file: str, language: str) -> None:
+    """
+    Validates the file, extracts text from it, and converts the text to an MP3 file.
+
+    Args:
+        file_path (str): The path to the input file to be processed.
+        language (str): The language code for text-to-speech (e.g., 'en' for English, 'ru' for Russian).
+    """
+    document_type = validate_file(file, SUPPORTED_TYPES)
+    if not document_type:
+        return
+
+    text = extract_text(file, document_type)
+    if not text.strip():
+        print(f'{error}: File {file} is empty or contains no readable text')
+        return
+    print(f'{success} Text from {file} fetched successfully. Length: {len(text)} symbols')
+
+    print(f'{success} Converting {file}')
+    output_name = Path(file).stem
+    print(f'{warning} Files "{file}" and "{Path(file).stem}.mp3" are being processed. Do not interact with them until they are converted')
+    convert_to_mp3(text, language, output_name)
+
+
+def main(files: str, language: str) -> None:
     prepare_console(
         logo_text='doc >> mp3',
         logo_font='fuzzy',
         logo_color='light_cyan'
         )
 
-    document_type = validate_file(file_path, SUPPORTED_TYPES)
-    if not document_type:
-        return
-
-    text = extract_text(file_path, document_type)
-    if not text.strip():
-        print(f'{error}: File is empty or contains no readable text')
-        return
-    print(f'{success} Text fetched successfully. Length: {len(text)} symbols')
-
-    print(f'{success} Conversion started')
-    convert_to_mp3(text, language, args.name)
+    for i, file in enumerate(files, 1):
+        print(f'[{i}/{len(files)}] Processing {file}')
+        process_file(file, language)
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="Convert text from a document file to an MP3 audio file.")
+    parser = argparse.ArgumentParser(description='Convert text from a document file to an MP3 audio file.')
 
-    parser.add_argument('--file', type=str, required=True, help='Path to the input file. Supported formats: txt, pdf, docx.')
+    parser.add_argument('--files', type=str, nargs='+', required=True, help='Paths to the input files.')
     parser.add_argument('--lang', type=str, required=True, help='Language code for text-to-speech (e.g., en for English, ru for Russian).')
-    parser.add_argument('--name', type=str, default='result.mp3', help='Name of the output MP3 file (default: result.mp3, .mp3 extension will be added if missing).')
-
+    
     args = parser.parse_args()
-    main(args.file, args.lang)
+    main(args.files, args.lang)
