@@ -134,7 +134,6 @@ def convert_to_mp3(text: str, language: str, output_name: str) -> None:
         return
     
     output_file = output_name + '.mp3'
-
     if Path(output_file).exists():
         print(f'{warning} File "{output_file}" already exists and will be overwritten')   
         os.remove(output_file)
