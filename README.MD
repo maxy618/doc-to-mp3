@@ -21,6 +21,8 @@
 - Converts extracted text into an MP3 audio file.  
 - Supports multiple languages for text-to-speech conversion.  
 - Customizable output file name.  
+- Supports processing multiple files concurrently using threads.  
+- Avoids overwriting existing files, prompting the user before overwriting.  
 
 ---
 
@@ -50,18 +52,22 @@
 
 Run the script from the command line:  
 ```bash
-python doc_to_mp3.py --file <file_path> --lang <language_code> [--name <output_name>]
+python doc_to_mp3.py --files <file_paths> --lang <language_code>
 ```
 
 ### **Arguments**
-- `--file` (required): Path to the input file (absolute or relative).  
-- `--lang` (required): Language code for text-to-speech (e.g., `en` for English, `ru` for Russian).  
-- `--name` (optional): Name of the output MP3 file. Defaults to `result.mp3`.  
+- `--files` (required): Paths to the input files (absolute or relative). Multiple files can be processed by providing space-separated paths.  
+- `--lang` (required): Language code for text-to-speech (e.g., `en` for English, `ru` for Russian).    
 
 ### **Example**
-Convert a `.pdf` file to an MP3 in English and save as `audio.mp3`:
+Convert a `.pdf` file to an MP3 in English and save as `.mp3`:
 ```bash
-python doc_to_mp3.py --file document.pdf --lang en --name audio.mp3
+python doc_to_mp3.py --files document.pdf --lang en
+```
+
+Convert multiple files at once:
+```bash
+python doc_to_mp3.py --files document.pdf document.docx --lang en
 ```
 
 ---
@@ -85,6 +91,7 @@ If you encounter issues, ensure that:
 1. The input file exists and is accessible.  
 2. The file format is one of the supported types (`.txt`, `.pdf`, `.docx`).  
 3. The language code is valid and supported by gTTS.  
+4. Ensure there are no conflicts with file names if processing multiple files simultaneously.
 
 ---
 
@@ -104,7 +111,8 @@ Contributions are always welcome! Feel free to:
 
 ## 💡 Tips
 
-- To clear the console and display the logo, the script uses ASCII art. You can customize this in the `prepare_console` function.  
+- The script uses threading to process multiple files concurrently. This improves performance but be mindful of system resources.  
+- You can customize the ASCII art logo in the `prepare_console` function.  
 - If your document contains sensitive text, ensure it is secure before sharing the generated audio file.  
 
---- 
+---
